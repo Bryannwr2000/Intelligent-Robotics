@@ -73,7 +73,7 @@ def calibrateBaseline(scale):
                 continue
 
             # Spin the robot at the given speed for the given time
-            ppi.set_velocity([0, 1], tick=20,turning_tick=wheel_vel, time = delta_time)
+            ppi.set_velocity([0, 2], tick=20,turning_tick=wheel_vel, time = delta_time)
 
             uInput = input("Did the robot spin 360deg?[y/N]")
             if uInput == 'y':
@@ -84,9 +84,13 @@ def calibrateBaseline(scale):
 
     # Once finished driving, compute the baseline parameter by averaging
     num = len(wheel_velocities_range)
-    baseline = 0
+    ticks = 0
     for delta_time, wheel_vel in zip(delta_times, wheel_velocities_range):
         pass # TODO: replace with your code to compute the baseline parameter using scale, wheel_vel, and delta_time
+        ticks += scale*delta_time*wheel_vel
+    dist = ticks/num #average ticks
+    baseline = dist/np.pi/2
+
     print("The baseline parameter is estimated as {:.6f} m.".format(baseline))
 
     return baseline
