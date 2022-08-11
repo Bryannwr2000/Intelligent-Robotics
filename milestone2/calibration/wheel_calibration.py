@@ -86,7 +86,7 @@ def calibrateBaseline(scale):
     num = len(wheel_velocities_range)
     ticks = 0
     for delta_time, wheel_vel in zip(delta_times, wheel_velocities_range):
-        pass # TODO: replace with your code to compute the baseline parameter using scale, wheel_vel, and delta_time
+        # TODO: replace with your code to compute the baseline parameter using scale, wheel_vel, and delta_time
         ticks += scale*delta_time*wheel_vel
     dist = ticks/num #average ticks
     baseline = dist/np.pi/2
