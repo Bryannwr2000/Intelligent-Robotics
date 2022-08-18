@@ -30,7 +30,7 @@ def calibrateWheelRadius():
                 continue
 
             # Drive the robot at the given speed for the given time
-            ppi.set_velocity([1, 0], tick=wheel_vel, time=delta_time)
+            ppi.set_velocity([4, 0], tick=wheel_vel, time=delta_time)
 
             uInput = input("Did the robot travel 1m?[y/N]")
             if uInput == 'y':
@@ -42,14 +42,16 @@ def calibrateWheelRadius():
     # Once finished driving, compute the scale parameter by averaging
     num = len(wheel_velocities_range)
     scale = 0
-    ticks = 0
+    total_scale = 0
     for delta_time, wheel_vel in zip(delta_times, wheel_velocities_range):
         # TODO: replace with your code to compute the scale parameter using wheel_vel and delta_time
-        ticks = ticks + delta_time*wheel_vel
-    m_per_ticks = ticks/num 
-    scale = 1/m_per_ticks
+        # Each 
+        # Sum up every computed robot scale parameter for each wheel velocity 
+        total_scale += 1 / (delta_time * wheel_vel)
+    # Compute the average scale parameter
+    scale = total_scale / num
     print("The scale parameter is estimated as {:.6f} m/ticks.".format(scale))
-
+    
     return scale
 
 
@@ -77,7 +79,7 @@ def calibrateBaseline(scale):
                 continue
 
             # Spin the robot at the given speed for the given time
-            ppi.set_velocity([0, 1], tick=20,turning_tick=wheel_vel, time = delta_time)
+            ppi.set_velocity([0, 4], tick=20,turning_tick=wheel_vel, time = delta_time)
 
             uInput = input("Did the robot spin 360deg?[y/N]")
             if uInput == 'y':
@@ -88,13 +90,17 @@ def calibrateBaseline(scale):
 
     # Once finished driving, compute the baseline parameter by averaging
     num = len(wheel_velocities_range)
-    cir = 0
+    baseline = 0
+    circumference = 0
+    total_baseline = 0
     for delta_time, wheel_vel in zip(delta_times, wheel_velocities_range):
         # TODO: replace with your code to compute the baseline parameter using scale, wheel_vel, and delta_time
-        cir = cir + scale*delta_time*wheel_vel
-    dist = cir/num #average distance
-    baseline = dist/np.pi/2
-
+        # Calculate every circumference for each wheel velocity 
+        circumference = scale * wheel_vel * delta_time 
+        # Sum up every computed baseline parameter for each wheel velocity 
+        total_baseline += circumference / np.pi
+    # Compute the average baseline parameter
+    baseline = total_baseline / num 
     print("The baseline parameter is estimated as {:.6f} m.".format(baseline))
 
     return baseline
