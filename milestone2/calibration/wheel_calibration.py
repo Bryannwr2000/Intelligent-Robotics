@@ -30,7 +30,7 @@ def calibrateWheelRadius():
                 continue
 
             # Drive the robot at the given speed for the given time
-            ppi.set_velocity([4, 0], tick=wheel_vel, time=delta_time)
+            ppi.set_velocity([1, 0], tick=wheel_vel, time=delta_time)
 
             uInput = input("Did the robot travel 1m?[y/N]")
             if uInput == 'y':
@@ -79,7 +79,7 @@ def calibrateBaseline(scale):
                 continue
 
             # Spin the robot at the given speed for the given time
-            ppi.set_velocity([0, 4], tick=20,turning_tick=wheel_vel, time = delta_time)
+            ppi.set_velocity([0, 1], tick=20,turning_tick=wheel_vel, time = delta_time)
 
             uInput = input("Did the robot spin 360deg?[y/N]")
             if uInput == 'y':
@@ -119,11 +119,12 @@ if __name__ == "__main__":
     # calibrate pibot scale and baseline
     dataDir = "{}/param/".format(os.getcwd())
 
-    print('Calibrating PiBot scale...\n')
-    scale = calibrateWheelRadius()
-    fileNameS = "{}scale.txt".format(dataDir)
-    np.savetxt(fileNameS, np.array([scale]), delimiter=',')
-
+    #print('Calibrating PiBot scale...\n')
+    #scale = calibrateWheelRadius()
+    #fileNameS = "{}scale.txt".format(dataDir)
+    #np.savetxt(fileNameS, np.array([scale]), delimiter=',')
+    scale = 0.01154040404040404012
+    
     print('Calibrating PiBot baseline...\n')
     baseline = calibrateBaseline(scale)
     fileNameB = "{}baseline.txt".format(dataDir)

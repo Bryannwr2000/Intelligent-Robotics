@@ -78,7 +78,7 @@ if __name__ == "__main__":
     pygame.display.update()
     
     # collect data
-    for x in range(10):
+    for x in range(30):
         print('Collecting {} images for camera calibration.'.format(x))
         calib.finish = False
         calib.command['image'] = False
