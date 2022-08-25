@@ -79,11 +79,10 @@ if __name__ == "__main__":
     
     # collect data
     for x in range(10):
-    print('Collecting {} images for camera calibration.'.format(x))
-    print('Press UP to continue.')
-    calib.finish = False
-    calib.update_keyboard()
-    print('Press ENTER to capture image.')
+        print('Collecting {} images for camera calibration.'.format(x))
+        calib.finish = False
+        calib.command['image'] = False
+        print('Press ENTER to capture image.')
         while not calib.finish:
         
             calib.update_keyboard()
