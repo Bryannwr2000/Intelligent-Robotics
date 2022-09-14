@@ -121,18 +121,6 @@ def merge_estimations(target_map):
     # TODO: the operation below is the default solution, which simply takes the first estimation for each target type.
     # Replace it with a better merge solution.
     if len(redapple_est) > num_per_target:
-        redapple_est = redapple_est[0:num_per_target]
-    if len(greenapple_est) > num_per_target:
-        greenapple_est = greenapple_est[0:num_per_target]
-    if len(orange_est) > num_per_target:
-        orange_est = orange_est[0:num_per_target]
-        print(orange_est)
-    if len(mango_est) > num_per_target:
-        mango_est = mango_est[0:num_per_target]
-    if len(capsicum_est) > num_per_target:
-        capsicum_est = capsicum_est[0:num_per_target]
-
-    if len(redapple_est) > num_per_target:
         x = 0
         y=0
         for i in range(len(redapple_est)):

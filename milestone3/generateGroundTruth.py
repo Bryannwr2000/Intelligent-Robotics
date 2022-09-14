@@ -60,8 +60,9 @@ if __name__ == '__main__':
     plt.show()
     
     d = {}
+    fruits = ["redapple", "greenapple", "orange", "mango", "capsicum"]
     for i in range(len(px)):
-        d['aruco' + str(i+1) + '_0'] = {'x': px[i], 'y':py[i]}
+        d[fruits[i] + '_0'] = {'x': px[i], 'y':py[i]}
         
     with open(args.outputfilename+'.txt', 'w') as f:
         print(d, file=f)
