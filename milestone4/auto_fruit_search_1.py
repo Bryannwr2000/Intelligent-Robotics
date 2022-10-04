@@ -22,6 +22,10 @@ import measure as measure
 
 # import operate.py 
 import operate
+# import dijkstra.py
+import dijkstra
+import matplotlib.pyplot as plt
+show_animation = True
 
 def read_true_map(fname):
     """Read the ground truth map and output the pose of the ArUco markers and 3 types of target fruit to search
@@ -175,6 +179,20 @@ def get_robot_pose():
 
     return robot_pose
 
+def drive_to_goal(robot_pose, rx, ry):
+    for i in range(len(rx)):
+        x = rx[len(rx)-i-1]
+        y = ry[len(rx)-i-1]
+        
+        # robot drives to the waypoint
+        waypoint = [x,y]
+        drive_to_point(waypoint,robot_pose)
+        
+        # estimate the robot's pose
+        robot_pose = get_robot_pose()
+        print("Finished driving to waypoint: {}; New robot pose: {}".format(waypoint,robot_pose))
+        ppi.set_velocity([0, 0])
+    
 # main loop
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Fruit searching")
@@ -182,31 +200,8 @@ if __name__ == "__main__":
     parser.add_argument("--ip", metavar='', type=str, default='localhost')
     parser.add_argument("--port", metavar='', type=int, default=8000)
     args, _ = parser.parse_known_args()
-
     ppi = Alphabot(args.ip,args.port)
-    
-    # read in the true map
-    fruits_list, fruits_true_pos, aruco_true_pos = read_true_map(args.map)
-    search_list = read_search_list()
-    print_target_fruits_pos(search_list, fruits_list, fruits_true_pos)
-    
-    #print(aruco_true_pos[0, :][])
-
-    # Obstacles positions
-    ox, oy = [], []
-    #len(fruits_true_pos)
-    # For loop to store x-coordinate and y-coordinate of each obstacle (aruco) into ox and oy respectively
-    for i in range(len(aruco_true_pos)):
-        aruco_x = aruco_true_pos[i, :][0]
-        aruco_y = aruco_true_pos[i, :][1]
-        ox.append(aruco_x)
-        oy.append(aruco_y)
-    # For loop to store x-coordinate and y-coordinate of each obstacle (fruit) into ox and oy respectively
-    
-    
-    waypoint = [0.0,0.0]
-    robot_pose = [0.0,0.0,0.0]
-    
+   
     # Operate.py
     operator_parser = argparse.ArgumentParser()
     operator_parser.add_argument("--ip", metavar='', type=str, default='localhost')
@@ -235,35 +230,87 @@ if __name__ == "__main__":
             operator.notification = 'SLAM is running'
         else:
             operator.notification = 'SLAM is paused'
+            
+    # read in the true map
+    fruits_list, fruits_true_pos, aruco_true_pos = read_true_map(args.map)
+    search_list = read_search_list()
+    print_target_fruits_pos(search_list, fruits_list, fruits_true_pos)
     
-    # The following code is only a skeleton code the semi-auto fruit searching task
-    while True:
-        # enter the waypoints
-        # instead of manually enter waypoints in command line, you can get coordinates by clicking on a map (GUI input), see camera_calibration.py
-        x,y = 0.0,0.0
-        x = input("X coordinate of the waypoint: ")
-        try:
-            x = float(x)
-        except ValueError:
-            print("Please enter a number.")
-            continue
-        y = input("Y coordinate of the waypoint: ")
-        try:
-            y = float(y)
-        except ValueError:
-            print("Please enter a number.")
-            continue
-
-        # robot drives to the waypoint
-        waypoint = [x,y]
-        drive_to_point(waypoint,robot_pose)
-        
-        # estimate the robot's pose
+    # Obstacles positions
+    ox, oy = [], []
+    # Grid resolution 
+    resolution = 0.4
+    fileB = "calibration/param/baseline.txt"
+    baseline = np.loadtxt(fileB, delimiter=',')
+    robot_radius = baseline / 2
+    robot_pose = get_robot_pose()
+    
+    # For loop to store x-coordinate and y-coordinate of aruco markers into ox and oy respectively
+    for i in range(len(aruco_true_pos)):
+        aruco_x = aruco_true_pos[i, :][0]
+        aruco_y = aruco_true_pos[i, :][1]
+        ox.append(aruco_x)
+        oy.append(aruco_y)
+    
+    # For loop to store x-coordinate and y-coordinate of arena boundaries into ox and oy respectively
+    for i in range(-160, 160): # Upper boundary 
+        ox.append(i/100)
+        oy.append(1.6)
+    for i in range(-160, 160): # Lower Boundary
+        ox.append(i/100)
+        oy.append(-1.6)
+    for i in range(-160, 160): # Left Boundary
+        ox.append(-1.6)
+        oy.append(i/100)
+    for i in range(-160, 160): # Right Boundary 
+        ox.append(1.6)
+        oy.append(i/100)
+    
+    # For loop to loop through each fruit in search list 
+    for i in range(len(search_list)):
         robot_pose = get_robot_pose()
-        print("Finished driving to waypoint: {}; New robot pose: {}".format(waypoint,robot_pose))
-
-        # exit
-        ppi.set_velocity([0, 0])
-        uInput = input("Add a new waypoint? [Y/N]")
-        if uInput == 'N':
-            break
+        sx = robot_pose[0]
+        sy = robot_pose[1]
+        gx = fruits_true_pos[i, :][0]
+        gy = fruits_true_pos[i, :][1]
+        
+        for j in range(len(fruits_true_pos)):
+            if ((fruits_true_pos[j, :][0] != gx) and (fruits_true_pos[j, :][0] != gy)):
+                ox.append(fruits_true_pos[j, :][0])
+                oy.append(fruits_true_pos[j, :][1])
+                
+        if show_animation:  # pragma: no cover
+            plt.plot(ox, oy, ".k")
+            plt.plot(sx, sy, "og")
+            plt.plot(gx, gy, "xb")
+            plt.grid(True)
+            space = np.array([-1.6, -1.2, -0.8, -0.4, 0, 0.4, 0.8, 1.2, 1.6])    
+            plt.xlabel("X"); plt.ylabel("Y")
+            plt.xticks(space); plt.yticks(space)
+            
+        dijk = dijkstra.Dijkstra(ox, oy, resolution, robot_radius)
+        rx, ry = dijk.planning(sx, sy, gx, gy)
+        
+        if show_animation:  # pragma: no cover
+            plt.plot(rx, ry, "-r")
+            plt.pause(0.01)
+            plt.show()
+            
+        fig = plt.figure 
+        drive_to_goal(robot_pose, rx, ry)
+        print("Reached {}".format(fruits_list[i]))
+        ox.pop(-1)
+        ox.pop(-1)
+        oy.pop(-1)
+        oy.pop(-1)
+        time.sleep(3)
+        
+            
+            
+        
+    
+    
+    
+    
+    
+    
