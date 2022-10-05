@@ -70,15 +70,19 @@ class Operate:
         self.bg = pygame.image.load('pics/gui_mask.jpg')
 
     # wheel control
-    def control(self, args, command, tick=10, turning_tick=5, run_time=0):  
+    def control(self, args, command, tick=0, turning_tick=0, run_time=0, anticlockwise=0, clockwise=0):  
         if args.play_data:
             lv, rv = self.pibot.set_velocity()  
         else:
-            self.control_clock = time.time()
-            lv, rv = self.pibot.set_velocity(command, tick, turning_tick, run_time)
+            if anticlockwise:
+                lv, rv = self.pibot.set_velocity(command, tick, turning_tick, run_time+0.0125)
+            elif clockwise:
+                lv, rv = self.pibot.set_velocity(command, tick, turning_tick, run_time+0.0125)
+            else:
+                lv, rv = self.pibot.set_velocity(command, tick, turning_tick, run_time)
         if not self.data is None:
             self.data.write_keyboard(lv, rv) 
-        dt = time.time() - self.control_clock
+        dt = run_time
         drive_meas = measure.Drive(lv, rv, dt)
         self.control_clock = time.time()
         return drive_meas
