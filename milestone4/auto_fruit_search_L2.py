@@ -8,6 +8,7 @@ import json
 import ast
 import argparse
 import time
+import pygame
 
 # import SLAM components
 sys.path.insert(0, "{}/slam".format(os.getcwd()))
@@ -25,7 +26,7 @@ import shutil
 # import operate.py 
 from operate import Operate
 # import dijkstra.py
-import dijkstra
+from dijkstra import Dijkstra
 import matplotlib.pyplot as plt
 show_animation = True
 
@@ -196,7 +197,67 @@ def drive_to_goal(robot_pose, rx, ry):
         robot_pose = get_robot_pose()
         print("Finished driving to waypoint: {}; New robot pose: {}".format(waypoint,robot_pose))
         ppi.set_velocity([0, 0])
+
+def generate_space(fruits_true_pose, aruco_true_pose, search_index, fruits):
+    ori_x, ori_y = [],[]
+
+    #obstacle location
+    for i in range(fruits):
+        if i == search_index:
+            continue
+        ori_x.append(fruits_true_pose[i][0])
+        ori_y.append(fruits_true_pose[i][1])
+
+    for i in range(10):
+        ori_x.append(aruco_true_pose[i][0])
+        ori_y.append(aruco_true_pose[i][1])
+
+    print("Number of obstacles: ", range(ori_x))
+
+    # show the space map
+    plt.plot(ori_x, ori_y, ".k")
+    plt.xlim([-2, 2])
+    plt.ylim([-2, 2])
+    plt.grid(True)
+    plt.axis("equal")
+    plt.show() 
     
+    return ori_x, ori_y
+
+def plan_route(search_index):
+    fileB = "calibration/param/baseline.txt"
+    robot_radius = np.loadtxt(fileB, delimiter=',')*2   # robot radius = baseline of the robot/2.0
+    print(robot_radius)
+
+    print("Searching order:", search_index)
+    sx,sy = float(robot_pose[0]),float(robot_pose[1]) # starting location
+    gx,gy = fruits_true_pos[search_index][0],fruits_true_pos[search_index][1] # goal position
+
+    print("starting loation is: ",sx,",",sy)
+    print("ending loation is: ",gx,",",gy)
+    
+#--------------------------------------- Using Dijkstra-------------------------------------#
+    if True:  # pragma: no cover
+        plt.plot(ori_x, ori_y, ".k")
+        plt.plot(sx, sy, "og")
+        plt.plot(gx, gy, "xb")
+        plt.grid(True)
+        plt.axis("equal")
+
+    grid_size = 0.2
+    dijkstra = Dijkstra(ori_x, ori_y, grid_size, robot_radius)
+    rx, ry = dijkstra.planning(sx, sy, gx, gy)
+    
+    print("The x path is:",rx)
+    print("The y path is:",ry)
+    print("The last location is:",rx[-1])
+
+    if True:  # pragma: no cover
+        plt.plot(rx, ry, "-r")
+        plt.pause(0.01)
+        plt.show()
+
+
 # main loop
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Fruit searching")
@@ -211,7 +272,6 @@ if __name__ == "__main__":
     print(args)
 
     ppi = Alphabot(args.ip,args.port)
-   
     operate = Operate(args)
 
     # Run SLAM 
@@ -237,81 +297,114 @@ if __name__ == "__main__":
     fruits_list, fruits_true_pos, aruco_true_pos = read_true_map(args.map)
     search_list = read_search_list()
     print_target_fruits_pos(search_list, fruits_list, fruits_true_pos)
+
+
+    # # Obstacles positions
+    # ox, oy = [], []
+    # # Grid resolution 
+    # resolution = 0.4
+    # fileB = "calibration/param/baseline.txt"
+    # baseline = np.loadtxt(fileB, delimiter=',')
+    # robot_radius = baseline / 2
+    # robot_pose = get_robot_pose()
     
-    # Obstacles positions
-    ox, oy = [], []
-    # Grid resolution 
-    resolution = 0.4
-    fileB = "calibration/param/baseline.txt"
-    baseline = np.loadtxt(fileB, delimiter=',')
-    robot_radius = baseline / 2
-    robot_pose = get_robot_pose()
+    # # For loop to store x-coordinate and y-coordinate of aruco markers into ox and oy respectively
+    # for i in range(len(aruco_true_pos)):
+    #     aruco_x = aruco_true_pos[i, :][0]
+    #     aruco_y = aruco_true_pos[i, :][1]
+    #     ox.append(aruco_x)
+    #     oy.append(aruco_y)
     
-    # For loop to store x-coordinate and y-coordinate of aruco markers into ox and oy respectively
-    for i in range(len(aruco_true_pos)):
-        aruco_x = aruco_true_pos[i, :][0]
-        aruco_y = aruco_true_pos[i, :][1]
-        ox.append(aruco_x)
-        oy.append(aruco_y)
+    # # For loop to store x-coordinate and y-coordinate of arena boundaries into ox and oy respectively
+    # for i in range(-160, 160): # Upper boundary 
+    #     ox.append(i/100)
+    #     oy.append(1.6)
+    # for i in range(-160, 160): # Lower Boundary
+    #     ox.append(i/100)
+    #     oy.append(-1.6)
+    # for i in range(-160, 160): # Left Boundary
+    #     ox.append(-1.6)
+    #     oy.append(i/100)
+    # for i in range(-160, 160): # Right Boundary 
+    #     ox.append(1.6)
+    #     oy.append(i/100)
     
-    # For loop to store x-coordinate and y-coordinate of arena boundaries into ox and oy respectively
-    for i in range(-160, 160): # Upper boundary 
-        ox.append(i/100)
-        oy.append(1.6)
-    for i in range(-160, 160): # Lower Boundary
-        ox.append(i/100)
-        oy.append(-1.6)
-    for i in range(-160, 160): # Left Boundary
-        ox.append(-1.6)
-        oy.append(i/100)
-    for i in range(-160, 160): # Right Boundary 
-        ox.append(1.6)
-        oy.append(i/100)
-    
-    # For loop to loop through each fruit in search list 
-    for i in range(len(search_list)):
-        robot_pose = get_robot_pose()
-        sx = robot_pose[0]
-        sy = robot_pose[1]
-        gx = fruits_true_pos[i, :][0]
-        gy = fruits_true_pos[i, :][1]
+    # # For loop to loop through each fruit in search list 
+    # for i in range(len(search_list)):
+    #     robot_pose = get_robot_pose()
+    #     sx = robot_pose[0]
+    #     sy = robot_pose[1]
+    #     gx = fruits_true_pos[i, :][0]
+    #     gy = fruits_true_pos[i, :][1]
         
-        for j in range(len(fruits_true_pos)):
-            if ((fruits_true_pos[j, :][0] != gx) and (fruits_true_pos[j, :][0] != gy)):
-                ox.append(fruits_true_pos[j, :][0])
-                oy.append(fruits_true_pos[j, :][1])
+    #     for j in range(len(fruits_true_pos)):
+    #         if ((fruits_true_pos[j, :][0] != gx) and (fruits_true_pos[j, :][0] != gy)):
+    #             ox.append(fruits_true_pos[j, :][0])
+    #             oy.append(fruits_true_pos[j, :][1])
                 
-        if show_animation:  # pragma: no cover
-            plt.plot(ox, oy, ".k")
-            plt.plot(sx, sy, "og")
-            plt.plot(gx, gy, "xb")
-            plt.grid(True)
-            space = np.array([-1.6, -1.2, -0.8, -0.4, 0, 0.4, 0.8, 1.2, 1.6])    
-            plt.xlabel("X"); plt.ylabel("Y")
-            plt.xticks(space); plt.yticks(space)
+    #     if show_animation:  # pragma: no cover
+    #         plt.plot(ox, oy, ".k")
+    #         plt.plot(sx, sy, "og")
+    #         plt.plot(gx, gy, "xb")
+    #         plt.grid(True)
+    #         space = np.array([-1.6, -1.2, -0.8, -0.4, 0, 0.4, 0.8, 1.2, 1.6])    
+    #         plt.xlabel("X"); plt.ylabel("Y")
+    #         plt.xticks(space); plt.yticks(space)
             
-        dijk = dijkstra.Dijkstra(ox, oy, resolution, robot_radius)
-        rx, ry = dijk.planning(sx, sy, gx, gy)
+    #     dijk = Dijkstra(ox, oy, resolution, robot_radius)
+    #     rx, ry = dijk.planning(sx, sy, gx, gy)
         
-        rx.pop(-1)
-        ry.pop(-1)
-        rx[0] = rx[0] + 0.2
-        ry[0] = ry[0] - 0.2
-        print(rx)
-        print(ry)
+    #     rx.pop(-1)
+    #     ry.pop(-1)
+    #     rx[0] = rx[0] + 0.2
+    #     ry[0] = ry[0] - 0.2
+    #     print(rx)
+    #     print(ry)
         
-        if show_animation:  # pragma: no cover
-            plt.plot(rx, ry, "-r")
-            plt.pause(0.01)
-            plt.show()
-        fig = plt.figure 
-        drive_to_goal(robot_pose, rx, ry)
-        print("Reached {}".format(fruits_list[i]))
-        ox.pop(-1)
-        ox.pop(-1)
-        oy.pop(-1)
-        oy.pop(-1)
-        time.sleep(3)
+    #     if show_animation:  # pragma: no cover
+    #         plt.plot(rx, ry, "-r")
+    #         plt.pause(0.01)
+    #         plt.show()
+    #     fig = plt.figure 
+    #     drive_to_goal(robot_pose, rx, ry)
+    #     print("Reached {}".format(fruits_list[i]))
+    #     ox.pop(-1)
+    #     ox.pop(-1)
+    #     oy.pop(-1)
+    #     oy.pop(-1)
+    #     time.sleep(3)
+
+    fruits = 3 # number of fruits
+
+    go = 1
+    while go == 1:
+        x,y = 0.0, 0.0
+        robot_pose = [0.0, 0.0, 0.0]
+        for j in range(fruits):
+            for i in range(fruits):
+                if search_list[j] ==fruits[i]:
+                    search_index = i
+            ori_x, ori_y = generate_space(fruits_true_pos, aruco_true_pos, search_index, fruits)
+            goal_x, goal_y = plan_route(search_index)
+
+            for i in range(len(rx)-3):
+                x = goal_x[-i-2]
+                y = goal_y[-i-2]
+                print(x,y)
+
+                print("current pose: ", robot_pose)
+                robot_pose = [x,y,np.arctan2(y-robot_pose[1],x-robot_pose[0])]
+                print("Finished driving to waypoint: {};\n New robot pose: {}".format((x,y),robot_pose))
+
+            print("Dah sampai buah tu. Skrg pergi ke buah seterusnya!")
+            time.sleep(3)
+            operate.draw(canvas)
+            pygame.display.update()
+
+        go = 0
+
+
+
         
             
             
