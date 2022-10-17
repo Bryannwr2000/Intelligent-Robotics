@@ -15,17 +15,20 @@ from slam.ekf import EKF
 from slam.robot import Robot
 import slam.aruco_detector as aruco
 
+
 # import utility functions
 sys.path.insert(0, "util")
-from pibot import Alphabot
-import measure as measure
+from util.pibot import Alphabot
+import util.measure as measure
+import shutil
 
 # import operate.py 
-import operate
+from operate import Operate
 # import dijkstra.py
 import dijkstra
 import matplotlib.pyplot as plt
 show_animation = True
+
 
 def read_true_map(fname):
     """Read the ground truth map and output the pose of the ArUco markers and 3 types of target fruit to search
@@ -109,7 +112,7 @@ def print_target_fruits_pos(search_list, fruit_list, fruit_true_pos):
 # additional improvements:
 # you may use different motion model parameters for robot driving on its own or driving while pushing a fruit
 # try changing to a fully automatic delivery approach: develop a path-finding algorithm that produces the waypoints
-def drive_to_point(waypoint, robot_pose):
+def drive_to_point(waypoint, robot_pose, operate):
     # imports camera / wheel calibration parameters 
     fileS = "calibration/param/scale.txt"
     scale = np.loadtxt(fileS, delimiter=',')
@@ -133,19 +136,23 @@ def drive_to_point(waypoint, robot_pose):
     # Compute Euclidean distance between the robot and the waypoint
     distance_between_waypoint_and_robot = np.hypot(x_diff, y_diff)
     # Compute turning angle required by the robot to face the waypoint
-    turning_angle = np.arctan2(y_diff, x_diff) - theta 
+    turning_angle =  np.arctan2(waypoint[1]-robot_pose[1], waypoint[0]-robot_pose[0])  #angle to goal
     print("Turning angle :{}".format(turning_angle))
-    #if (turning_angle > np.pi):
-    #    turning_angle = np.pi - turning_angle
-    
+    turn_time = ((abs(turning_angle)*baseline) / (2*wheel_vel*scale))
+    diff_turn = turning_angle[0] - robot_pose[2][0]
+    operate.take_pic()
+    print("diff_turn: {:.2f}", diff_turn)
+    print("Turning for {:.2f} seconds".format(turn_time))
+        
     # turn towards the waypoint 
     if (turning_angle > 0): # rotating anticlockwise
-        turn_time = ((abs(turning_angle)*baseline) / (2*wheel_vel*scale))
-        print("Turning for {:.2f} seconds".format(turn_time))
         # Update robot_pose using SLAM 
-        operator.take_pic()
-        drive_meas = operator.control(operator_args, command=[0, 1], turning_tick=wheel_vel, run_time=turn_time, anticlockwise=1)
-        operator.update_slam(drive_meas)
+        lv, rv = ppi.pibot.set_velocity(command, tick, turning_tick, run_time+0.0125)
+        
+
+        
+
+
         
     else: # rotating clockwise
         turn_time = ((abs(turning_angle)*baseline) / (2*wheel_vel*scale))
@@ -201,19 +208,17 @@ if __name__ == "__main__":
     parser.add_argument("--map", type=str, default='M4_true_map.txt')
     parser.add_argument("--ip", metavar='', type=str, default='localhost')
     parser.add_argument("--port", metavar='', type=int, default=8000)
+    parser.add_argument("--calib_dir", type=str, default="calibration/param/")
+    parser.add_argument("--save_data", action='store_true')
+    parser.add_argument("--play_data", action='store_true')
+    parser.add_argument("--ckpt", default='network/scripts/model/model.best.pth')
     args, _ = parser.parse_known_args()
+    print(args)
+
     ppi = Alphabot(args.ip,args.port)
    
-    # Operate.py
-    operator_parser = argparse.ArgumentParser()
-    operator_parser.add_argument("--ip", metavar='', type=str, default='localhost')
-    operator_parser.add_argument("--port", metavar='', type=int, default=8000)
-    operator_parser.add_argument("--calib_dir", type=str, default="calibration/param/")
-    operator_parser.add_argument("--save_data", action='store_true')
-    operator_parser.add_argument("--play_data", action='store_true')
-    operator_args, _ = operator_parser.parse_known_args()
-    operator = operate.Operate(operator_args)
-    
+    operate = Operate(args)
+
     # Run SLAM 
     n_observed_markers = len(operator.ekf.taglist)
     if n_observed_markers == 0:
