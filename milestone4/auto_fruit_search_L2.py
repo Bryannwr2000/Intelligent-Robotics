@@ -146,32 +146,29 @@ def drive_to_point(waypoint, robot_pose, operate):
         
     # turn towards the waypoint 
     if (turning_angle > 0): # rotating anticlockwise
-        # Update robot_pose using SLAM 
-        lv, rv = ppi.pibot.set_velocity(command, tick, turning_tick, run_time+0.0125)
-        
+        lv, rv = ppi.set_velocity(command=[0,1], turning_tick=wheel_vel, run_time=turn_time)
+        turn_meas = measure.Drive(lv, rv, turn_time)
+        operate.update_slam(turn_meas)
 
-        
-
-
-        
     else: # rotating clockwise
-        turn_time = ((abs(turning_angle)*baseline) / (2*wheel_vel*scale))
-        print("Turning for {:.2f} seconds".format(turn_time)) 
-        # Update robot_pose using SLAM 
-        operator.take_pic()
-        drive_meas = operator.control(operator_args, command=[0, -1], turning_tick=wheel_vel, run_time=turn_time, clockwise=1)
-        operator.update_slam(drive_meas)
-        
+        lv, rv = ppi.set_velocity(command = [0,-1], turning_tick=wheel_vel, run_time=turn_time)
+        turn_meas = measure.Drive(lv, rv, turn_time)
+        operate.update_slam(drive_meas)
+    
+    print(operate.ekf.robot.state)
+
     wheel_vel = 25
     # after turning, drive straight to the waypoint
     drive_time = distance_between_waypoint_and_robot / (wheel_vel * scale) 
     print("Driving for {:.2f} seconds".format(drive_time))
     # Update robot_pose using SLAM 
-    operator.take_pic()
-    drive_meas = operator.control(operator_args, command=[1, 0], tick=wheel_vel, run_time=drive_time)
-    operator.update_slam(drive_meas)
+    operate.take_pic()
+    lv, rv = ppi.set_velocity(command=[1,0], tick=wheel_vel, run_time=drive_time)
+    straight_drive_meas = measure.Drive(lv, rv, drive_time)
+    operate.update_slam(straight_drive_meas)
     ####################################################
 
+    print(operate.ekf.robot.state)
     print("Arrived at [{}, {}]".format(waypoint[0], waypoint[1]))
 
 
@@ -180,10 +177,8 @@ def get_robot_pose():
     # TODO: replace with your codes to estimate the pose of the robot
     # We STRONGLY RECOMMEND you to use your SLAM code from M2 here
     # update the robot pose [x,y,theta]
-    x_new = operator.ekf.robot.state[0,0]
-    y_new = operator.ekf.robot.state[1,0]
-    theta_new = operator.ekf.robot.state[2,0]
-    robot_pose = [x_new, y_new, theta_new]  
+    robot_pose = [0.0, 0.0, 0.0]
+    robot_pose = operate.ekf.robot.state  
     ####################################################
 
     return robot_pose
@@ -220,23 +215,23 @@ if __name__ == "__main__":
     operate = Operate(args)
 
     # Run SLAM 
-    n_observed_markers = len(operator.ekf.taglist)
+    n_observed_markers = len(operate.ekf.taglist)
     if n_observed_markers == 0:
-        if not operator.ekf_on:
-            operator.notification = 'SLAM is running'
-            operator.ekf_on = True
+        if not operate.ekf_on:
+            operate.notification = 'SLAM is running'
+            operate.ekf_on = True
         else:
-            operator.notification = '> 2 landmarks is required for pausing'
+            operate.notification = '> 2 landmarks is required for pausing'
     elif n_observed_markers < 3:
-        operator.notification = '> 2 landmarks is required for pausing'
+        operate.notification = '> 2 landmarks is required for pausing'
     else:
-        if not operator.ekf_on:
-            operator.request_recover_robot = True
-        operator.ekf_on = not operator.ekf_on
-        if operator.ekf_on:
-            operator.notification = 'SLAM is running'
+        if not operate.ekf_on:
+            operate.request_recover_robot = True
+        operate.ekf_on = not operate.ekf_on
+        if operate.ekf_on:
+            operate.notification = 'SLAM is running'
         else:
-            operator.notification = 'SLAM is paused'
+            operate.notification = 'SLAM is paused'
             
     # read in the true map
     fruits_list, fruits_true_pos, aruco_true_pos = read_true_map(args.map)
