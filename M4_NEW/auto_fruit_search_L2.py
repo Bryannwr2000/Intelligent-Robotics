@@ -138,6 +138,10 @@ def drive_to_point(waypoint, robot_pose):
     distance_between_waypoint_and_robot = np.hypot(x_diff, y_diff)
     # Compute turning angle required by the robot to face the waypoint
     turning_angle = np.arctan2(y_diff, x_diff) - theta 
+    if (turning_angle > np.pi):
+        turning_angle -= 2*np.pi
+    elif (turning_angle < -np.pi)
+        turning_angle += 2*np.pi
     # Compute turn_time 
     turn_time = ((abs(turning_angle)*baseline) / (2*wheel_vel*scale))
     print("Turning for {:.2f} seconds".format(turn_time))
