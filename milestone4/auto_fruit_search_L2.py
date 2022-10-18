@@ -96,7 +96,7 @@ def print_target_fruits_pos(search_list, fruit_list, fruit_true_pos):
     @param fruit_list: list of target fruits
     @param fruit_true_pos: positions of the target fruits
     """
-
+    fruit_true_pos_list = []
     print("Search order:")
     n_fruit = 1
     for fruit in search_list:
@@ -106,8 +106,12 @@ def print_target_fruits_pos(search_list, fruit_list, fruit_true_pos):
                                                   fruit,
                                                   np.round(fruit_true_pos[i][0], 1),
                                                   np.round(fruit_true_pos[i][1], 1)))
+        fruit_true_pos_list.append(fruit_true_pos[i][0], fruit_true_pos[i][1])
         n_fruit += 1
+    
+    print('fruits list:\n\n',fruit_true_pos_list)
 
+    return(fruit_true_pos_list)
 
 # Waypoint navigation
 # the robot automatically drives to a given [x,y] coordinate
@@ -155,7 +159,7 @@ def drive_to_point(waypoint, robot_pose, operate):
     else: # rotating clockwise
         lv, rv = ppi.set_velocity(command = [0,-1], turning_tick=wheel_vel, run_time=turn_time)
         turn_meas = measure.Drive(lv, rv, turn_time)
-        operate.update_slam(drive_meas)
+        operate.update_slam(turn_meas)
     
     print(operate.ekf.robot.state)
 
@@ -391,7 +395,7 @@ if __name__ == "__main__":
             ori_x, ori_y = generate_space(fruits_true_pos, aruco_true_pos, search_index, fruits)
             goal_x, goal_y = plan_route(search_index)
 
-            for i in range(len(rx)-3):
+            for i in range(len(goal_x)-3):
                 x = goal_x[-i-2]
                 y = goal_y[-i-2]
                 print(x,y)
