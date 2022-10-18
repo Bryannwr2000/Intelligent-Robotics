@@ -79,7 +79,7 @@ class Dijkstra:
                     plt.pause(0.001)
 
             if current.x == goal_node.x and current.y == goal_node.y:
-                print("Find goal")
+                #print("Find goal")
                 goal_node.parent_index = current.parent_index
                 goal_node.cost = current.cost
                 break
