@@ -28,6 +28,7 @@ from operate import Operate
 # import dijkstra.py
 from dijkstra import Dijkstra
 import matplotlib.pyplot as plt
+
 show_animation = True
 
 
@@ -212,7 +213,7 @@ def generate_space(fruits_true_pose, aruco_true_pose, search_index, fruits):
         ori_x.append(aruco_true_pose[i][0])
         ori_y.append(aruco_true_pose[i][1])
 
-    print("Number of obstacles: ", range(ori_x))
+    print("Number of obstacles: ", ori_x)
 
     # show the space map
     plt.plot(ori_x, ori_y, ".k")
@@ -257,6 +258,8 @@ def plan_route(search_index):
         plt.pause(0.01)
         plt.show()
 
+    return rx, ry
+
 
 # main loop
 if __name__ == "__main__":
@@ -296,6 +299,7 @@ if __name__ == "__main__":
     # read in the true map
     fruits_list, fruits_true_pos, aruco_true_pos = read_true_map(args.map)
     search_list = read_search_list()
+    print(search_list)
     print_target_fruits_pos(search_list, fruits_list, fruits_true_pos)
 
 
