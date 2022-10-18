@@ -256,7 +256,7 @@ def plan_route(search_index):
         plt.plot(rx, ry, "-r")
         plt.pause(0.01)
         plt.show()
-
+    return rx,ry
 
 # main loop
 if __name__ == "__main__":
@@ -388,7 +388,7 @@ if __name__ == "__main__":
             ori_x, ori_y = generate_space(fruits_true_pos, aruco_true_pos, search_index, fruits)
             goal_x, goal_y = plan_route(search_index)
 
-            for i in range(len(rx)-3):
+            for i in range(len(goal_x)-3):
                 x = goal_x[-i-2]
                 y = goal_y[-i-2]
                 print(x,y)
@@ -399,7 +399,7 @@ if __name__ == "__main__":
 
             print("Dah sampai buah tu. Skrg pergi ke buah seterusnya!")
             time.sleep(3)
-            operate.draw(canvas)
+            #operate.draw(canvas)
             pygame.display.update()
 
         go = 0
