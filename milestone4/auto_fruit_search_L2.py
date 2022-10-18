@@ -212,7 +212,7 @@ def generate_space(fruits_true_pose, aruco_true_pose, search_index, fruits):
         ori_x.append(aruco_true_pose[i][0])
         ori_y.append(aruco_true_pose[i][1])
 
-    print("Number of obstacles: ", range(ori_x))
+    print("Number of obstacles: ", list(ori_x))
 
     # show the space map
     plt.plot(ori_x, ori_y, ".k")
@@ -296,6 +296,7 @@ if __name__ == "__main__":
     # read in the true map
     fruits_list, fruits_true_pos, aruco_true_pos = read_true_map(args.map)
     search_list = read_search_list()
+    print(search_list)
     print_target_fruits_pos(search_list, fruits_list, fruits_true_pos)
 
 
@@ -382,7 +383,7 @@ if __name__ == "__main__":
         robot_pose = [0.0, 0.0, 0.0]
         for j in range(fruits):
             for i in range(fruits):
-                if search_list[j] ==fruits[i]:
+                if search_list[j] == fruits_list[i]:
                     search_index = i
             ori_x, ori_y = generate_space(fruits_true_pos, aruco_true_pos, search_index, fruits)
             goal_x, goal_y = plan_route(search_index)
