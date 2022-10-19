@@ -109,7 +109,7 @@ def print_target_fruits_pos(search_list, fruit_list, fruit_true_pos):
                                                   fruit,
                                                   np.round(fruit_true_pos[i][0], 1),
                                                   np.round(fruit_true_pos[i][1], 1)))
-        fruit_true_pos_list.append(fruit_true_pos[i][0], fruit_true_pos[i][1])
+                fruit_true_pos_list.append([fruit_true_pos[i][0], fruit_true_pos[i][1]])
         n_fruit += 1
     
     print('fruits list:\n\n',fruit_true_pos_list)
@@ -299,7 +299,19 @@ def driving(operate, mode, time, wheel_vel):
         operate.draw(canvas)
         pygame.display.update()
 
+def init_markers(aruco_true_pos): 
+    x = []
+    y = []
+    meas = []
 
+    for i in range(aruco_true_pos.shape[0]):
+        x = aruco_true_pos[i][0]
+        y = aruco_true_pos[i][1]
+        tag = i + 1
+        lms = measure.Marker(np.array([[x] ,[y]]), tag)
+        meas.append(lms)
+
+    self.ekf.add_landmarks(meas)
 
 def get_robot_pose():
     ####################################################
