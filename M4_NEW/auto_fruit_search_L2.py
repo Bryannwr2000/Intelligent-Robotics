@@ -90,7 +90,7 @@ def print_target_fruits_pos(search_list, fruit_list, fruit_true_pos):
     print("Search order:")
     n_fruit = 1
     for fruit in search_list:
-        for i in range(3):
+        for i in range(len(fruit_list)):
             if fruit == fruit_list[i]:
                 print('{}) {} at [{}, {}]'.format(n_fruit,
                                                   fruit,
@@ -278,6 +278,8 @@ if __name__ == "__main__":
     ox, oy = [], []
     # Grid resolution 
     resolution = 0.2
+    fileS = "calibration/param/scale.txt"
+    scale = np.loadtxt(fileS, delimiter=',')
     fileB = "calibration/param/baseline.txt"
     baseline = np.loadtxt(fileB, delimiter=',')
     robot_radius = baseline / 2
@@ -347,7 +349,7 @@ if __name__ == "__main__":
             for k in range(16):
                 turning_required = (np.pi/180)*45
                 wheel_vel = 15
-                turning_time_required = ((abs(turning_angle)*baseline) / (2*wheel_vel*scale))
+                turning_time_required = ((abs(turning_required)*baseline) / (2*wheel_vel*scale))
                 drive_and_update_slam([0, -1], wheel_vel, turning_time_required)
                 
         fig = plt.figure 
