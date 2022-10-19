@@ -136,6 +136,20 @@ class Operate:
         robot = Robot(baseline, scale, camera_matrix, dist_coeffs)
         return EKF(robot)
 
+    def init_markers(self,aruco_true_pos): 
+        x = []
+        y = []
+        meas = []
+
+        for i in range(aruco_true_pos.shape[0]):
+            x = aruco_true_pos[i][0]
+            y = aruco_true_pos[i][1]
+            tag = i + 1
+            lms = measure.Marker(np.array([[x] ,[y]]), tag)
+            meas.append(lms)
+
+        self.ekf.add_landmarks(meas)
+
     # save SLAM map
     def record_data(self):
         if self.command['output']:

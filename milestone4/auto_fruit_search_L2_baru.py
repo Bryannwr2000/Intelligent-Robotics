@@ -299,7 +299,7 @@ def driving(operate, mode, time, wheel_vel):
         operate.draw(canvas)
         pygame.display.update()
 
-def init_markers(aruco_true_pos): 
+def init_markers(operate,aruco_true_pos): 
     x = []
     y = []
     meas = []
@@ -311,7 +311,7 @@ def init_markers(aruco_true_pos):
         lms = measure.Marker(np.array([[x] ,[y]]), tag)
         meas.append(lms)
 
-    self.ekf.add_landmarks(meas)
+    operate.ekf.add_landmarks(meas)
 
 def get_robot_pose():
     ####################################################
