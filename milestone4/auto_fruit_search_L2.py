@@ -130,6 +130,8 @@ def drive_to_point(waypoint, robot_pose, operate):
     # One simple strategy is to first turn on the spot facing the waypoint,
     # then drive straight to the way point
     
+    threshold = 0.25
+    error_counter = 999
     wheel_vel = 10 # tick to move the robot
     # Extract x-coordinate and y-coordinate of the waypoint
     x_waypoint, y_waypoint = waypoint
@@ -176,6 +178,65 @@ def drive_to_point(waypoint, robot_pose, operate):
 
     print(operate.ekf.robot.state)
     print("Arrived at [{}, {}]".format(waypoint[0], waypoint[1]))
+
+def driving(operate, mode, time, wheel_vel):
+    drive_factor = 1.15 #change according to the robot condition
+    turn_factor = 0
+    if (mode == 1): #turning
+        threshold_30 = np.pi/6/(operate.scale*operate.wheel_ang_vel/(operate.baseline/2))
+        threshold_60 = np.pi/3/(operate.scale*operate.wheel_ang_vel/(operate.baseline/2))
+        threshold_90 = np.pi/2/(operate.scale*operate.wheel_ang_vel/(operate.baseline/2))
+        threshold_120 = np.pi/1.5/(operate.scale*operate.wheel_ang_vel/(operate.baseline/2))
+        threshold_150 = np.pi/1.2/(operate.scale*operate.wheel_ang_vel/(operate.baseline/2))
+        threshold_180 = np.pi/1/(operate.scale*operate.wheel_ang_vel/(operate.baseline/2))
+
+        #adjust the factor according to the robot
+        if (abs(time) <= threshold_30):
+            turn_factor = 2.0
+        elif (abs(time) > threshold_30 and abs(time) <= threshold_60):
+            turn_factor = 1.90
+        elif (abs(time) > threshold_60 and abs(time) <= threshold_90):
+            turn_factor = 1.55
+        elif (abs(time) > threshold_90 and abs(time) <= threshold_120):
+            turn_factor = 1.30
+        elif (abs(time) > threshold_120 and abs(time) <= threshold_150):
+            turn_factor = 1.25
+        elif (abs(time) > threshold_150 and abs(time) <= threshold_180):
+            turn_factor = 1.19
+        else:
+            print("Error: turn angle more than 180 degree")
+
+    direction = []
+    if (mode == 0): #go straight
+        direction = [1,0]
+        robot_time = drive_factor * time
+    elif (mode == 1): #turn
+        direction = [0, np.sign(time)]
+        robot_time = turn_factor * time
+    else:
+        direction = [0,0] #stay still
+    
+    robot_time = abs(robot_time)
+    time = abs(time)
+
+    lv, rv = operate.pibot.set_velocity(direction, operate.wheel_vel, operate.wheel_ang_vel, robot_time)
+    operate.pibot.set_velocity([0, 0],0, 0, 0.25)
+
+    operate.take_pic()
+    drive_meas = measure.Drive(lv, rv, time)
+    operate.update_slam(drive_meas)
+
+    operate.draw(canvas)
+    pygame.display.update()
+
+    operate.take_pic()
+    for i in range(15):
+        drive_meas = measure.Drive(0, 0, 0)
+        operate.update_slam(drive_meas)
+
+        operate.draw(canvas)
+        pygame.display.update()
+
 
 
 def get_robot_pose():
