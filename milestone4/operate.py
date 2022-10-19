@@ -24,6 +24,14 @@ import slam.aruco_detector as aruco
 
 class Operate:
     def __init__(self, args):
+        # USER DEFINED
+        self.wheel_vel = 30
+        self.wheel_ang_vel = 15
+        self.scale = 0
+        self.baseline = 0
+        self.TITLE_FONT = 0
+        self.TEXT_FONT = 0
+
         self.folder = 'pibot_dataset/'
         if not os.path.exists(self.folder):
             os.makedirs(self.folder)
@@ -174,10 +182,10 @@ class Operate:
                                 )
 
         # canvas.blit(self.gui_mask, (0, 0))
-        self.put_caption(canvas, caption='SLAM', position=(2*h_pad+320, v_pad)) # M2
+        self.put_caption(canvas, caption='SLAM', position=(2*h_pad+320, v_pad),text_colour=(200, 200, 200)) # M2
         self.put_caption(canvas, caption='Detector (M3)',
-                         position=(h_pad, 240+2*v_pad)) # M3
-        self.put_caption(canvas, caption='PiBot Cam', position=(h_pad, v_pad))
+                         position=(h_pad, 240+2*v_pad),text_colour=(200, 200, 200)) # M3
+        self.put_caption(canvas, caption='PiBot Cam', position=(h_pad, v_pad),text_colour=(200, 200, 200))
 
         notifiation = TEXT_FONT.render(self.notification,
                                           False, text_colour)
@@ -202,8 +210,8 @@ class Operate:
         canvas.blit(view, position)
     
     @staticmethod
-    def put_caption(canvas, caption, position, text_colour=(200, 200, 200)):
-        caption_surface = TITLE_FONT.render(caption,
+    def put_caption(self, canvas, caption, position, text_colour=(200, 200, 200)):
+        caption_surface = self.TITLE_FONT.render(caption,
                                           False, text_colour)
         canvas.blit(caption_surface, (position[0], position[1]-25))
 

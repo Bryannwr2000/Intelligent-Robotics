@@ -241,7 +241,7 @@ def get_robot_angle(operate):
     return theta
 
 
-def driving(operate, mode, time, wheel_vel):
+def driving(operate, mode, time):
     drive_factor = 1.15 #change according to the robot condition
     turn_factor = 0
     if (mode == 1): #turning
@@ -298,20 +298,6 @@ def driving(operate, mode, time, wheel_vel):
 
         operate.draw(canvas)
         pygame.display.update()
-
-def init_markers(operate,aruco_true_pos): 
-    x = []
-    y = []
-    meas = []
-
-    for i in range(aruco_true_pos.shape[0]):
-        x = aruco_true_pos[i][0]
-        y = aruco_true_pos[i][1]
-        tag = i + 1
-        lms = measure.Marker(np.array([[x] ,[y]]), tag)
-        meas.append(lms)
-
-    operate.ekf.add_landmarks(meas)
 
 def get_robot_pose():
     ####################################################
@@ -602,8 +588,8 @@ if __name__ == "__main__":
                 path(px, py, x_target, y_target)
 
                 for i in range(len(px)):
-                    drive_time, turn_time = calc_move_param(operate, [px[i], py[i]], operate.ekf.robot.state)
-                    drive_to_point(operate, [px[i], py[i]])
+                    drive_time, turn_time = moving_param(operate, [px[i], py[i]], operate.ekf.robot.state)
+                    drive_to_point([px[i], py[i]],operate)
                     # plot_path(px, py, x_target, y_target)
 
                 get_robot_state(operate)
