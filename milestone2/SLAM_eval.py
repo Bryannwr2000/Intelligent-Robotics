@@ -143,3 +143,10 @@ if __name__ == '__main__':
     plt.legend(['Real','Pred'])
     plt.grid()
     plt.show()
+
+    d={}
+    for i in range(len(taglist)):
+        d["aruco" + str(i+1) + "_0"] = {"x": us_vec_transformed[0][i], "y": us_vec_transformed[1][i]}
+
+    with open(base_dir/'PredMap.txt', 'w') as f:
+        json.dump(d,f,indent =4)

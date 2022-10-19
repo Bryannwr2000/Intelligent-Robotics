@@ -5,6 +5,8 @@ import numpy as np
 import cv2 
 import os, sys
 import time
+import json
+import ast
 
 # import utility functions
 sys.path.insert(0, "{}/utility".format(os.getcwd()))
@@ -312,11 +314,59 @@ class Operate:
             pygame.quit()
             sys.exit()
 
+    def init_markers(self, aruco_true_pos):
+        x = []
+        y = []
+        meas = []
+
+        for i in range(aruco_true_pos.shape[0]):
+            x = aruco_true_pos[i][0]
+            y = aruco_true_pos[i][1]
+            tag = i + 1
+            lms = measure.Marker(np.array([[x] ,[y]]), tag, 0.01*np.eye(2))
+            meas.append(lms)
+
+        self.ekf.add_landmarks(meas)
+
+    def read_true_map(self, fname):
+        with open(fname, 'r') as f:
+            try:
+                gt_dict = json.load(f)
+            except ValueError as e:
+                with open(fname, 'r') as f:
+                    gt_dict = ast.literal_eval(f.readline())
+            fruit_list = []
+            fruit_true_pos = []
+            aruco_true_pos = np.empty([10, 2])
+
+            # remove unique id of targets of the same type
+            for key in gt_dict:
+                x = np.round(gt_dict[key]['x'], 1)
+                y = np.round(gt_dict[key]['y'], 1)
+
+                if key.startswith('aruco'):
+                    if key.startswith('aruco10'):
+                        aruco_true_pos[9][0] = x
+                        aruco_true_pos[9][1] = y
+                    else:
+                        marker_id = int(key[5])
+                        aruco_true_pos[marker_id-1][0] = x
+                        aruco_true_pos[marker_id-1][1] = y
+                else:
+                    fruit_list.append(key[:-2])
+                    if len(fruit_true_pos) == 0:
+                        fruit_true_pos = np.array([[x, y]])
+                    else:
+                        fruit_true_pos = np.append(fruit_true_pos, [[x, y]], axis=0)
+
+        return fruit_list, fruit_true_pos, aruco_true_pos
+
         
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("--map", type=str, default='slam.txt')
     parser.add_argument("--ip", metavar='', type=str, default='localhost')
     parser.add_argument("--port", metavar='', type=int, default=8000)
     parser.add_argument("--calib_dir", type=str, default="calibration/param/")
@@ -325,6 +375,12 @@ if __name__ == "__main__":
     parser.add_argument("--ckpt", default='network/scripts/model/model.best.pth')
     args, _ = parser.parse_known_args()
     
+    # read in the true map
+    operate = Operate(args)
+    aruco_true_pos = operate.read_true_map(args.map)
+    print(aruco_true_pos)
+    operate.init_markers(aruco_true_pos);
+
     pygame.font.init() 
     TITLE_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 35)
     TEXT_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 40)
