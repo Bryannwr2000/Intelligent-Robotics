@@ -9,12 +9,6 @@ import ast
 import argparse
 import time
 
-# import SLAM components
-# sys.path.insert(0, "{}/slam".format(os.getcwd()))
-# from slam.ekf import EKF
-# from slam.robot import Robot
-# import slam.aruco_detector as aruco
-
 # import utility functions
 sys.path.insert(0, "util")
 from pibot import Alphabot
@@ -96,7 +90,7 @@ def print_target_fruits_pos(search_list, fruit_list, fruit_true_pos):
     print("Search order:")
     n_fruit = 1
     for fruit in search_list:
-        for i in range(3):
+        for i in range(len(fruit_list)):
             if fruit == fruit_list[i]:
                 print('{}) {} at [{}, {}]'.format(n_fruit,
                                                   fruit,
@@ -125,7 +119,6 @@ def drive_to_point(waypoint, robot_pose):
     # -- New Code -- # 
     wheel_vel = 20 # tick to move the robot
     
-    # turn towards the waypoint
     # Extract x-coordinate and y-coordinate of the waypoint
     x_waypoint, y_waypoint = waypoint
     # Extract current x-coordinate, y-coordinate and orientation of the robot from robot_pose 
@@ -138,37 +131,24 @@ def drive_to_point(waypoint, robot_pose):
     distance_between_waypoint_and_robot = np.hypot(x_diff, y_diff)
     # Compute turning angle required by the robot to face the waypoint
     turning_angle = np.arctan2(y_diff, x_diff) - theta 
+    if (turning_angle > np.pi):
+        turning_angle -= 2*np.pi
+    elif (turning_angle < -np.pi):
+        turning_angle += 2*np.pi
     # Compute turn_time 
     turn_time = ((abs(turning_angle)*baseline) / (2*wheel_vel*scale))
     print("Turning for {:.2f} seconds".format(turn_time))
     
+    # turn towards the waypoint
     if (turning_angle > 0): # rotating anticlockwise
-        lv, rv = ppi.set_velocity([0, 1], turning_tick=wheel_vel, time=turn_time)
-        drive_meas_rotate = measure.Drive(lv, rv, turn_time)
-        time.sleep(0.5)
-        operate.take_pic()
-        operate.update_slam(drive_meas_rotate)
-        operate.draw(canvas)
-        pygame.display.update()
+        drive_and_update_slam([0, 1], wheel_vel, turn_time)
     elif (turning_angle < 0): # rotating clockwise
-        lv, rv = ppi.set_velocity([0, -1], turning_tick=wheel_vel, time=turn_time)
-        drive_meas_rotate = measure.Drive(lv, rv, turn_time)
-        time.sleep(0.5)
-        operate.take_pic()
-        operate.update_slam(drive_meas_rotate)
-        operate.draw(canvas)
-        pygame.display.update()
+        drive_and_update_slam([0, -1], wheel_vel, turn_time)
     
     # after turning, drive straight to the waypoint
     drive_time = distance_between_waypoint_and_robot / (wheel_vel * scale) 
     print("Driving for {:.2f} seconds".format(drive_time))
-    lv, rv = ppi.set_velocity([1, 0], tick=wheel_vel, time=drive_time)
-    drive_meas_straight = measure.Drive(lv, rv, drive_time)
-    time.sleep(0.5)
-    operate.take_pic()
-    operate.update_slam(drive_meas_rotate)
-    operate.draw(canvas)
-    pygame.display.update()
+    drive_and_update_slam([1, 0], wheel_vel, drive_time)
     # -- End -- # 
     ####################################################
 
@@ -192,7 +172,7 @@ def get_robot_pose():
     return robot_pose
 
 # -- New Code -- #
-def drive_to_goal(robot_pose, rx, ry):
+def drive_to_fruit(robot_pose, rx, ry):
     for i in range(len(rx)):
         x = rx[len(rx)-i-1]
         y = ry[len(rx)-i-1]
@@ -204,7 +184,16 @@ def drive_to_goal(robot_pose, rx, ry):
         # estimate the robot's pose
         robot_pose = get_robot_pose()
         print("Finished driving to waypoint: {}; New robot pose: {}".format(waypoint,robot_pose))
-        ppi.set_velocity([0, 0])
+        drive_and_update_slam([0, 0], 0, 0)
+
+def drive_and_update_slam(command, wheel_vel, run_time):
+    lv, rv = ppi.set_velocity(command, tick=wheel_vel, turning_tick=wheel_vel, time=run_time)
+    drive_meas = measure.Drive(lv, rv, run_time)
+    time.sleep(0.5)
+    operate.take_pic()
+    operate.update_slam(drive_meas)
+    operate.draw(canvas)
+    pygame.display.update()
 # -- End -- # 
 
 # main loop
@@ -228,15 +217,9 @@ if __name__ == "__main__":
     search_list = read_search_list()
     print_target_fruits_pos(search_list, fruits_list, fruits_true_pos)
 
-    waypoint = [0.0,0.0]
-    robot_pose = [0.0,0.0,0.0]
-    
     # -- New Code -- # 
     # GUI 
     pygame.font.init() 
-    TITLE_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 35)
-    TEXT_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 40)
-    
     width, height = 700, 660
     canvas = pygame.display.set_mode((width, height))
     pygame.display.set_caption('ECE4078 2021 Lab')
@@ -294,11 +277,14 @@ if __name__ == "__main__":
     # Obstacles positions
     ox, oy = [], []
     # Grid resolution 
-    resolution = 0.4
+    resolution = 0.2
+    fileS = "calibration/param/scale.txt"
+    scale = np.loadtxt(fileS, delimiter=',')
     fileB = "calibration/param/baseline.txt"
     baseline = np.loadtxt(fileB, delimiter=',')
     robot_radius = baseline / 2
     robot_pose = get_robot_pose()
+    drive_and_update_slam([0, 0], 0, 0)
     
     # For loop to store x-coordinate and y-coordinate of aruco markers into ox and oy respectively
     for i in range(len(aruco_true_pos)):
@@ -328,12 +314,12 @@ if __name__ == "__main__":
         sy = robot_pose[1]
         gx = fruits_true_pos[i, :][0]
         gy = fruits_true_pos[i, :][1]
-        
-        for j in range(len(fruits_true_pos)):
-            if ((fruits_true_pos[j, :][0] != gx) and (fruits_true_pos[j, :][0] != gy)):
+        current_fruit = search_list[i]
+        for j in range(len(fruits_list)):
+            if (fruits_list[j] != current_fruit):
                 ox.append(fruits_true_pos[j, :][0])
                 oy.append(fruits_true_pos[j, :][1])
-                
+        
         if show_animation:  # pragma: no cover
             plt.plot(ox, oy, ".k")
             plt.plot(sx, sy, "og")
@@ -346,26 +332,34 @@ if __name__ == "__main__":
         dijk = Dijkstra(ox, oy, resolution, robot_radius)
         rx, ry = dijk.planning(sx, sy, gx, gy)
         
-        rx.pop(-1)
-        ry.pop(-1)
-        rx[0] = rx[0] + 0.2
-        ry[0] = ry[0] - 0.2
-        #print(rx)
-        #print(ry)
-        
         if show_animation:  # pragma: no cover
             plt.plot(rx, ry, "-r")
             plt.pause(0.01)
             plt.show()
             
+        # Remove starting point     
+        rx.pop(-1)
+        ry.pop(-1)
+        # Remove goal to avoid collision
+        rx.pop(0)
+        ry.pop(0)
+        
+        # At the beginning of fruit search, scan through all the aruco markers
+        if (i == 0):
+            for k in range(16):
+                turning_required = (np.pi/180)*45
+                wheel_vel = 15
+                turning_time_required = ((abs(turning_required)*baseline) / (2*wheel_vel*scale))
+                drive_and_update_slam([0, -1], wheel_vel, turning_time_required)
+                
         fig = plt.figure 
-        drive_to_goal(robot_pose, rx, ry)
-        print("Reached {}".format(fruits_list[i]))
+        operate.notification = "Moving to {} ...".format(fruits_list[i])
+        drive_to_fruit(robot_pose, rx, ry)
+        operate.notification = "Reached {} !".format(fruits_list[i])
         ox.pop(-1)
         ox.pop(-1)
         oy.pop(-1)
         oy.pop(-1)
         time.sleep(3)
-        
-    ppi.set_velocity([0, 0])    
+        drive_and_update_slam([0, 0], 0, 0)
     # -- End -- # 

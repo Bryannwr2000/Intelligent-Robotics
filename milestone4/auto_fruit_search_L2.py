@@ -217,7 +217,7 @@ def generate_space(fruits_true_pose, aruco_true_pose, search_index, fruits):
         ori_x.append(aruco_true_pose[i][0])
         ori_y.append(aruco_true_pose[i][1])
 
-    print("Number of obstacles: ", ori_x)
+    print("Number of obstacles: ", list(ori_x))
 
     # show the space map
     plt.plot(ori_x, ori_y, ".k")
@@ -261,9 +261,7 @@ def plan_route(search_index):
         plt.plot(rx, ry, "-r")
         plt.pause(0.01)
         plt.show()
-
-    return rx, ry
-
+    return rx,ry
 
 # main loop
 if __name__ == "__main__":
@@ -390,7 +388,7 @@ if __name__ == "__main__":
         robot_pose = [0.0, 0.0, 0.0]
         for j in range(fruits):
             for i in range(fruits):
-                if search_list[j] ==fruits[i]:
+                if search_list[j] == fruits_list[i]:
                     search_index = i
             ori_x, ori_y = generate_space(fruits_true_pos, aruco_true_pos, search_index, fruits)
             goal_x, goal_y = plan_route(search_index)
@@ -406,7 +404,7 @@ if __name__ == "__main__":
 
             print("Dah sampai buah tu. Skrg pergi ke buah seterusnya!")
             time.sleep(3)
-            operate.draw(canvas)
+            #operate.draw(canvas)
             pygame.display.update()
 
         go = 0

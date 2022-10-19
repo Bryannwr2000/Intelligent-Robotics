@@ -169,6 +169,7 @@ class Operate:
 
     # paint the GUI            
     def draw(self, canvas):
+        TEXT_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 40)
         canvas.blit(self.bg, (0, 0))
         text_colour = (220, 220, 220)
         v_pad = 40
@@ -176,7 +177,7 @@ class Operate:
 
         # paint SLAM outputs
         ekf_view = self.ekf.draw_slam_state(res=(320, 480+v_pad),
-            not_pause = self.ekf_on)
+            not_pause = self.ekf_on)#
         canvas.blit(ekf_view, (2*h_pad+320, v_pad))
         robot_view = cv2.resize(self.aruco_img, (320, 240))
         self.draw_pygame_window(canvas, robot_view, 
@@ -220,6 +221,7 @@ class Operate:
     
     @staticmethod
     def put_caption(canvas, caption, position, text_colour=(200, 200, 200)):
+        TITLE_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 35)
         caption_surface = TITLE_FONT.render(caption,
                                           False, text_colour)
         canvas.blit(caption_surface, (position[0], position[1]-25))

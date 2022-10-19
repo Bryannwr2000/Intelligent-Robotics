@@ -138,10 +138,10 @@ class EKF:
     def predict_covariance(self, raw_drive_meas):
         n = self.number_landmarks()*2 + 3
         Q = np.zeros((n,n))
-        Q[0:3,0:3] = self.robot.covariance_drive(raw_drive_meas)+ 0.01*np.eye(3)
+        Q[0:3,0:3] = self.robot.covariance_drive(raw_drive_meas)+ 0.001*np.eye(3)
         return Q
 
-    def add_landmarks(self, measurements):
+    def add_landmarks(self, measurements): # done 
         if not measurements:
             return
 
@@ -157,7 +157,12 @@ class EKF:
             
             lm_bff = lm.position
             lm_inertial = robot_xy + R_theta @ lm_bff
-
+            # -- New Code -- #
+            fileB = "calibration/param/baseline.txt"
+            baseline = np.loadtxt(fileB, delimiter=',')
+            width_of_aruco = 0.05
+            lm_inertial -= (baseline/2-width_of_aruco)
+            # -- End -- # 
             self.taglist.append(int(lm.tag))
             self.markers = np.concatenate((self.markers, lm_inertial), axis=1)
 
