@@ -324,31 +324,35 @@ def drive_to_goal(robot_pose, rx, ry):
         print("Finished driving to waypoint: {}; New robot pose: {}".format(waypoint,robot_pose))
         ppi.set_velocity([0, 0])
 
-def generate_space(fruits_true_pose, aruco_true_pose, search_index, fruits):
-    ori_x, ori_y = [],[]
+# def generate_space(fruits_true_pose, aruco_true_pose, search_index, fruits):
+#     ori_x, ori_y = [],[]
 
-    #obstacle location
-    for i in range(fruits):
-        if i == search_index:
-            continue
-        ori_x.append(fruits_true_pose[i][0])
-        ori_y.append(fruits_true_pose[i][1])
+#     #obstacle location
+#     for i in range(fruits):
+#         if i == search_index:
+#             continue
+#         ori_x.append(fruits_true_pose[i][0])
+#         ori_y.append(fruits_true_pose[i][1])
 
-    for i in range(10):
-        ori_x.append(aruco_true_pose[i][0])
-        ori_y.append(aruco_true_pose[i][1])
+#     for i in range(10):
+#         ori_x.append(aruco_true_pose[i][0])
+#         ori_y.append(aruco_true_pose[i][1])
 
-    print("Number of obstacles: ", list(ori_x))
+#     print("Number of obstacles: ", list(ori_x))
 
-    # show the space map
-    plt.plot(ori_x, ori_y, ".k")
-    plt.xlim([-2, 2])
-    plt.ylim([-2, 2])
-    plt.grid(True)
-    plt.axis("equal")
-    plt.show() 
+#     # show the space map
+#     plt.plot(ori_x, ori_y, ".k")
+#     plt.xlim([-2, 2])
+#     plt.ylim([-2, 2])
+#     plt.grid(True)
+#     plt.axis("equal")
+#     plt.show() 
     
-    return ori_x, ori_y
+#     return ori_x, ori_y
+
+def init_robot_state(operate):
+    for i in range(4):
+        get_robot_state(operate)
 
 def init_astar(obstacle):
 
@@ -551,6 +555,7 @@ if __name__ == "__main__":
 
     a_star = init_astar(np.concatenate((fruits_true_pos, aruco_true_pos), axis=0)) #generating space
 
+    init_robot_state(operate)
 
     go = 1
     while go == 1:
@@ -571,9 +576,10 @@ if __name__ == "__main__":
 
             x_target = x_target + offset_tx[min_index]
             y_target = y_target + offset_ty[min_index]
-            ori_x, ori_y = generate_space(fruits_true_pos, aruco_true_pos, min_index, fruits)
+            # ori_x, ori_y = generate_space(fruits_true_pos, aruco_true_pos, min_index, fruits)
 
-            target_error = 99999
+
+            target_error = 1
             thres = 0.35
             while target_error > thres:
                 robot_x = operate.ekf.robot.state[0][0]
