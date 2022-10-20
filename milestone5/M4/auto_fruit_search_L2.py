@@ -323,9 +323,17 @@ if __name__ == "__main__":
         robot_pose = get_robot_pose()
         sx = float(robot_pose[0])
         sy = float(robot_pose[1])
-        gx = fruits_true_pos[i, :][0]
-        gy = fruits_true_pos[i, :][1]
         current_fruit = search_list[i]
+        gx = 0
+        gy = 0
+        search_index = 0
+        for n in range(len(fruits_list)):
+            if (current_fruit == fruits_list[n]):
+                search_index = n 
+                gx = fruits_true_pos[n, :][0]
+                gy = fruits_true_pos[n, :][1]
+                print(gx)
+                print(gy)
         for j in range(len(fruits_list)):
             if (fruits_list[j] != current_fruit):
                 ox.append(fruits_true_pos[j, :][0])
@@ -351,7 +359,7 @@ if __name__ == "__main__":
         ry.pop(0)
         
         if show_animation:  # pragma: no cover
-            plt.title("Generated Path for {}".format(fruits_list[i]))
+            plt.title("Generated Path for {}".format(fruits_list[n]))
             plt.plot(rx, ry, "-r")
             plt.pause(0.01)
             plt.show()
@@ -368,9 +376,9 @@ if __name__ == "__main__":
             drive_and_update_slam([0, -1], wheel_vel, turning_time_required)
                 
         fig = plt.figure 
-        operate.notification = "Moving to {} ...".format(fruits_list[i])
+        operate.notification = "Moving to {} ...".format(fruits_list[n])
         drive_to_fruit(robot_pose, rx, ry)
-        operate.notification = "Reached {} !".format(fruits_list[i])
+        operate.notification = "Reached {} !".format(fruits_list[n])
         for i in range(4):
             ox.pop(-1)
             oy.pop(-1)
