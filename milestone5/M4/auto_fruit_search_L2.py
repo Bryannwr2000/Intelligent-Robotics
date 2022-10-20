@@ -359,7 +359,7 @@ if __name__ == "__main__":
         ry.pop(0)
         
         if show_animation:  # pragma: no cover
-            plt.title("Generated Path for {}".format(fruits_list[n]))
+            plt.title("Generated Path for {}".format(fruits_list[search_index]))
             plt.plot(rx, ry, "-r")
             plt.pause(0.01)
             plt.show()
@@ -376,9 +376,9 @@ if __name__ == "__main__":
             drive_and_update_slam([0, -1], wheel_vel, turning_time_required)
                 
         fig = plt.figure 
-        operate.notification = "Moving to {} ...".format(fruits_list[n])
+        operate.notification = "Moving to {} ...".format(fruits_list[search_index])
         drive_to_fruit(robot_pose, rx, ry)
-        operate.notification = "Reached {} !".format(fruits_list[n])
+        operate.notification = "Reached {} !".format(fruits_list[search_index])
         for i in range(4):
             ox.pop(-1)
             oy.pop(-1)
