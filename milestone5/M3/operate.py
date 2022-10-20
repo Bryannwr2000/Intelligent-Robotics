@@ -381,8 +381,7 @@ if __name__ == "__main__":
     operate = Operate(args)
     aruco_true_pos = operate.read_true_map(args.map)
     aruco_true_pos = aruco_true_pos[2]
-    print(aruco_true_pos)
-    operate.init_markers(aruco_true_pos);
+    operate.init_markers(aruco_true_pos)
 
     pygame.font.init() 
     TITLE_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 35)

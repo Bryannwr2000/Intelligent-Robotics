@@ -332,8 +332,8 @@ if __name__ == "__main__":
                 search_index = n 
                 gx = fruits_true_pos[n, :][0]
                 gy = fruits_true_pos[n, :][1]
-                print(gx)
-                print(gy)
+        print("Goal x: {}".format(gx))
+        print("Goal y: {}".format(gy))
         for j in range(len(fruits_list)):
             if (fruits_list[j] != current_fruit):
                 ox.append(fruits_true_pos[j, :][0])
@@ -376,7 +376,7 @@ if __name__ == "__main__":
             drive_and_update_slam([0, -1], wheel_vel, turning_time_required)
                 
         fig = plt.figure 
-        operate.notification = "Moving to {} ...".format(fruits_list[search_index])
+        operate.notification = "Searching for {} ...".format(fruits_list[search_index])
         drive_to_fruit(robot_pose, rx, ry)
         operate.notification = "Reached {} !".format(fruits_list[search_index])
         for i in range(4):
