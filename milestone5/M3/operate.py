@@ -111,7 +111,7 @@ class Operate:
                 self.ekf_on = True
             else:
                 self.notification = 'Recover failed, need >2 landmarks!'
-                self.ekf_on = False
+                self.ekf_on = True
             self.request_recover_robot = False
         elif self.ekf_on: # and not self.debug_flag:
             self.ekf.predict(drive_meas)
@@ -282,13 +282,14 @@ class Operate:
                     self.ekf.reset()
             # run SLAM
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                n_observed_markers = len(self.ekf.taglist)
+                n_observed_markers = len(self.ekf.taglist)                
                 if n_observed_markers == 0:
                     if not self.ekf_on:
                         self.notification = 'SLAM is running'
                         self.ekf_on = True
                     else:
                         self.notification = '> 2 landmarks is required for pausing'
+                        self.ekf_on = False
                 elif n_observed_markers < 3:
                     self.notification = '> 2 landmarks is required for pausing'
                 else:
@@ -299,6 +300,7 @@ class Operate:
                         self.notification = 'SLAM is running'
                     else:
                         self.notification = 'SLAM is paused'
+
             # run object detector
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_p:
                 self.command['inference'] = True
@@ -379,8 +381,7 @@ if __name__ == "__main__":
     operate = Operate(args)
     aruco_true_pos = operate.read_true_map(args.map)
     aruco_true_pos = aruco_true_pos[2]
-    print(aruco_true_pos)
-    operate.init_markers(aruco_true_pos);
+    operate.init_markers(aruco_true_pos)
 
     pygame.font.init() 
     TITLE_FONT = pygame.font.Font('pics/8-BitMadness.ttf', 35)
