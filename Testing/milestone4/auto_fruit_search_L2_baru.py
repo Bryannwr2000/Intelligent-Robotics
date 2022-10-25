@@ -254,17 +254,17 @@ def driving(operate, mode, time):
 
         #adjust the factor according to the robot
         if (abs(time) <= threshold_30):
-            turn_factor = 2.0
+            turn_factor = 1.49 # 30 degree calib
         elif (abs(time) > threshold_30 and abs(time) <= threshold_60):
-            turn_factor = 1.90
+            turn_factor = 1.07 #60 degree calib
         elif (abs(time) > threshold_60 and abs(time) <= threshold_90):
-            turn_factor = 1.55
+            turn_factor = 1.12 # 90 degree calib
         elif (abs(time) > threshold_90 and abs(time) <= threshold_120):
-            turn_factor = 1.30
+            turn_factor = 0.94 # 120 degree calib
         elif (abs(time) > threshold_120 and abs(time) <= threshold_150):
-            turn_factor = 1.25
+            turn_factor = 0.96 # 150 degree calib
         elif (abs(time) > threshold_150 and abs(time) <= threshold_180):
-            turn_factor = 1.19
+            turn_factor = 1.07 # 180 degree calib
         else:
             print("Error: turn angle more than 180 degree")
 
