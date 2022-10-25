@@ -111,7 +111,7 @@ class Operate:
                 self.ekf_on = True
             else:
                 self.notification = 'Recover failed, need >2 landmarks!'
-                self.ekf_on = False
+                self.ekf_on = True
             self.request_recover_robot = False
         elif self.ekf_on: # and not self.debug_flag:
             self.ekf.predict(drive_meas)
