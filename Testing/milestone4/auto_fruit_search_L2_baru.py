@@ -103,7 +103,7 @@ def print_target_fruits_pos(search_list, fruit_list, fruit_true_pos):
     print("Search order:")
     n_fruit = 1
     for fruit in search_list:
-        for i in range(3):
+        for i in range(4):
             if fruit == fruit_list[i]:
                 print('{}) {} at [{}, {}]'.format(n_fruit,
                                                   fruit,
@@ -269,6 +269,7 @@ def driving(operate, mode, time):
             print("Error: turn angle more than 180 degree")
 
     direction = []
+    robot_time = 0.0
     if (mode == 0): #go straight
         direction = [1,0]
         robot_time = drive_factor * time
