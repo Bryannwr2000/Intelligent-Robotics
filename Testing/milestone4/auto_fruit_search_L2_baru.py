@@ -103,7 +103,7 @@ def print_target_fruits_pos(search_list, fruit_list, fruit_true_pos):
     print("Search order:")
     n_fruit = 1
     for fruit in search_list:
-        for i in range(3):
+        for i in range(4):
             if fruit == fruit_list[i]:
                 print('{}) {} at [{}, {}]'.format(n_fruit,
                                                   fruit,
@@ -254,21 +254,22 @@ def driving(operate, mode, time):
 
         #adjust the factor according to the robot
         if (abs(time) <= threshold_30):
-            turn_factor = 2.0
+            turn_factor = 1.49 # 30 degree calib
         elif (abs(time) > threshold_30 and abs(time) <= threshold_60):
-            turn_factor = 1.90
+            turn_factor = 1.07 #60 degree calib
         elif (abs(time) > threshold_60 and abs(time) <= threshold_90):
-            turn_factor = 1.55
+            turn_factor = 1.12 # 90 degree calib
         elif (abs(time) > threshold_90 and abs(time) <= threshold_120):
-            turn_factor = 1.30
+            turn_factor = 0.94 # 120 degree calib
         elif (abs(time) > threshold_120 and abs(time) <= threshold_150):
-            turn_factor = 1.25
+            turn_factor = 0.96 # 150 degree calib
         elif (abs(time) > threshold_150 and abs(time) <= threshold_180):
-            turn_factor = 1.19
+            turn_factor = 1.07 # 180 degree calib
         else:
             print("Error: turn angle more than 180 degree")
 
     direction = []
+    robot_time = 0.0
     if (mode == 0): #go straight
         direction = [1,0]
         robot_time = drive_factor * time

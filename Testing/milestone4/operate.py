@@ -182,12 +182,12 @@ class Operate:
                                 )
 
         # canvas.blit(self.gui_mask, (0, 0))
-        self.put_caption(canvas, caption='SLAM', position=(2*h_pad+320, v_pad),text_colour=(200, 200, 200)) # M2
-        self.put_caption(canvas, caption='Detector (M3)',
+        self.put_caption(self,canvas, caption='SLAM', position=(2*h_pad+320, v_pad),text_colour=(200, 200, 200)) # M2
+        self.put_caption(self,canvas, caption='Detector (M3)',
                          position=(h_pad, 240+2*v_pad),text_colour=(200, 200, 200)) # M3
-        self.put_caption(canvas, caption='PiBot Cam', position=(h_pad, v_pad),text_colour=(200, 200, 200))
+        self.put_caption(self,canvas, caption='PiBot Cam', position=(h_pad, v_pad),text_colour=(200, 200, 200))
 
-        notifiation = TEXT_FONT.render(self.notification,
+        notifiation = self.TEXT_FONT.render(self.notification,
                                           False, text_colour)
         canvas.blit(notifiation, (h_pad+10, 596))
 
@@ -198,7 +198,7 @@ class Operate:
             time_remain = "Time Is Up !!!"
         else:
             time_remain = ""
-        count_down_surface = TEXT_FONT.render(time_remain, False, (50, 50, 50))
+        count_down_surface = self.TEXT_FONT.render(time_remain, False, (50, 50, 50))
         canvas.blit(count_down_surface, (2*h_pad+320+5, 530))
         return canvas
 
