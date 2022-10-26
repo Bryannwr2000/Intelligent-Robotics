@@ -119,6 +119,15 @@ def save_txt(markers, fname="marker_pose_transformed.txt"):
     with open(base_dir/fname,'w') as map_file:
         json.dump(map_attributes, map_file, indent=2)
 
+def save_raw(markers, fname="marker_pose_raw.txt"):
+    base_dir = Path('./')
+    d = {}
+    for i in range(10):
+        d['aruco' + str(i+1) + '_0'] = {'x': round(markers[0][i], 1), 'y':round(markers[1][i], 1)}
+    map_attributes = d
+    with open(base_dir/fname,'w') as map_file:
+        json.dump(map_attributes, map_file, indent=2)
+
 def slam_eval():
     robot_x, robot_y, robot_theta = load_robot_pose("robot_pose.txt")
     gt_robot_x, gt_robot_y, gt_robot_theta = load_robot_pose("actual_robot_pose.txt")
@@ -148,6 +157,7 @@ def slam_eval():
     
     
     save_txt(us_vec_pred_aligned)
+    save_raw(us_vec)
     print("robot pose:{}".format(load_robot_pose("robot_pose.txt")))
     print()
     print("The following parameters optimally transform the estimated points to the ground truth.")

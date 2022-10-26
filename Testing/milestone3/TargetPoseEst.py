@@ -200,6 +200,37 @@ def merge_estimations(target_map):
     print(target_est)
     return target_est
 
+def fruits_pos():
+        # camera_matrix = np.ones((3,3))/2
+    fileK = "{}intrinsic.txt".format('./calibration/param/')
+    camera_matrix = np.loadtxt(fileK, delimiter=',')
+    base_dir = Path('./')
+    
+    
+    # a dictionary of all the saved detector outputs
+    image_poses = {}
+    with open(base_dir/'lab_output/images.txt') as fp:
+        for line in fp.readlines():
+            pose_dict = ast.literal_eval(line)
+            image_poses[pose_dict['imgfname']] = pose_dict['pose']
+    
+    # estimate pose of targets in each detector output
+    target_map = {}        
+    for file_path in image_poses.keys():
+        completed_img_dict = get_image_info(base_dir, file_path, image_poses)
+        target_map[file_path] = estimate_pose(base_dir, camera_matrix, completed_img_dict)
+
+    # merge the estimations of the targets so that there are only one estimate for each target type
+    target_est = merge_estimations(target_map)
+                     
+    # save target pose estimations
+    with open(base_dir/'lab_output/targets.txt', 'w') as fo:
+        json.dump(target_est, fo)
+    
+    print('Estimations saved!')
+
+    return
+
 
 if __name__ == "__main__":
     # camera_matrix = np.ones((3,3))/2

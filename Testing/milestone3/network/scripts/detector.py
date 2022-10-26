@@ -8,6 +8,7 @@ from args import args
 from res18_skip import Resnet18Skip
 from torchvision import transforms
 import cv2
+from pathlib import Path
 
 class Detector:
     def __init__(self, ckpt, use_gpu=False):
